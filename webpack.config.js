@@ -2,7 +2,8 @@ var path = require("path");
 //var webpack = require('webpack');
 
 module.exports = {
-	entry: "./src/index.js",
+	context : path.resolve(__dirname, "src/client"),
+	entry: "./index.js",
 	output: {
 		path: path.resolve(__dirname, "dist"),
 		filename: "bundle.js"
@@ -19,6 +20,7 @@ module.exports = {
 	stats: {
 		colors: true
 	},
+	devtool: "source-map",
 	devServer: {
 		inline: true,
 		contentBase: "./dist",
