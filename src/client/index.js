@@ -7,9 +7,7 @@ import App from "./Routes/routes";
 import configureStore from "./store/store";
 
 
-
 const store = configureStore();
-
 
 ReactDOM.render(
 	<Provider store={store}>

@@ -1,9 +1,9 @@
 import { combineReducers  } from "redux";
 
-import dummy from "./reducers/dummyReducer";
+import stocks from "./reducers/stocks";
 
 export default combineReducers(
 	{
-		dummy
+		stocks
 	}
 );
