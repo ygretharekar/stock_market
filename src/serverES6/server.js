@@ -1,12 +1,8 @@
 import express from "express";
-import dotenv from "dotenv";
 import socketIO from "socket.io";
 import http from "http";
 
-
 import appConfig from "./config/middlewares";
-
-dotenv.config();
 
 const app = express();
 

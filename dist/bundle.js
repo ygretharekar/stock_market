@@ -29990,21 +29990,23 @@ var _button2 = _interopRequireDefault(_button);
 
 var _stock_actions = __webpack_require__(170);
 
-var _stock_actions2 = _interopRequireDefault(_stock_actions);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 class Hello extends _react2.default.Component {
 	constructor(props) {
 		super(props);
 		this.handleClick = this.handleClick.bind(this);
+		this.handleDB = this.handleDB.bind(this);
 	}
 
 	handleClick() {
 		console.log("handleclick clicked");
-		const socket = (0, _socket2.default)("http://127.0.0.1:3000");
-		socket.emit("disconnect");
-		// this.props.checkSocket();
+
+		this.props.fetchStock("MSFT");
+	}
+	handleDB() {
+		console.log("handleDB clicked");
+		this.props.updateDB(this.props.stocks);
 	}
 
 	render() {
@@ -30012,12 +30014,17 @@ class Hello extends _react2.default.Component {
 			"div",
 			null,
 			_react2.default.createElement(_helloWorld2.default, null),
-			_react2.default.createElement(_button2.default, { handleClick: this.handleClick })
+			_react2.default.createElement(_button2.default, { handleClick: this.handleClick }),
+			_react2.default.createElement(_button2.default, { handleClick: this.handleDB })
 		);
 	}
 }
 
-const _default = (0, _reactRedux.connect)(null, { checkSocket: _stock_actions2.default })(Hello);
+const mapStateToProps = state => ({
+	stocks: state
+});
+
+const _default = (0, _reactRedux.connect)(mapStateToProps, { fetchStock: _stock_actions.fetchStock, updateDB: _stock_actions.updateDB })(Hello);
 
 exports.default = _default;
 ;
@@ -30028,6 +30035,8 @@ var _temp = function () {
 	}
 
 	__REACT_HOT_LOADER__.register(Hello, "Hello", "C:/My Work/Stock Market/src/client/containers/helloWorld.js");
+
+	__REACT_HOT_LOADER__.register(mapStateToProps, "mapStateToProps", "C:/My Work/Stock Market/src/client/containers/helloWorld.js");
 
 	__REACT_HOT_LOADER__.register(_default, "default", "C:/My Work/Stock Market/src/client/containers/helloWorld.js");
 }();
@@ -33580,7 +33589,7 @@ var _temp = function () {
 Object.defineProperty(exports, "__esModule", {
 	value: true
 });
-exports.checkSocket = exports.checkDB = exports.removeStock = exports.addStock = exports.getDB = undefined;
+exports.fetchStock = exports.checkSocket = exports.updateDB = exports.removeStock = exports.addStock = exports.getDB = undefined;
 
 var _axios = __webpack_require__(171);
 
@@ -33594,14 +33603,14 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 //actions
 
-const CHECK_DB = "CHECK_DB";
+const UPDATE_DB = "UPDATE_DB";
 const ADD_STOCK = "ADD_STOCK";
 const REMOVE_STOCK = "REMOVE_STOCK";
 
 //action creators
 
 const getDB = exports.getDB = data => ({
-	type: CHECK_DB,
+	type: UPDATE_DB,
 	data
 });
 
@@ -33617,8 +33626,46 @@ const removeStock = exports.removeStock = list => ({
 
 //async actions
 
-const checkDB = exports.checkDB = stock => dispatch => _axios2.default.get("/api/stock").then(res => {
-	console.log(res);
+const updateDB = exports.updateDB = stock => dispatch => _axios2.default.post("/api/stock").then(res => {
+	// console.log(res);
+	// console.log("stocks ", stock.stocks[0]["Meta Data"]["2. Symbol"]);
+	if (res.data.length > stock.stocks.length) {
+		res.data.forEach(item => {
+			let flag = true;
+			stock.stocks.forEach(element => {
+				if (element["Meta Data"]["2. Symbol"] == item.stockName) flag = false;
+			});
+			if (flag) {
+				console.log("====================================");
+				console.log("more stocks in database");
+				console.log("====================================");
+				dispatch(fetchStock(item.stockName));
+			}
+		});
+	} else if (res.data.length < stock.stocks.length) {
+
+		let newStocks = [];
+
+		console.log("====================================");
+		console.log(res.data);
+		console.log("====================================");
+
+		stock.stocks.forEach(el => {
+			res.data.forEach(e => {
+				if (el["Meta Data"]["2. Symbol"] == e.stockName) newStocks = [...newStocks, el];else {
+					console.log("====================================");
+					console.log("Less stocks in state");
+					console.log("====================================");
+				}
+			});
+		});
+
+		dispatch(getDB(newStocks));
+	} else {
+		console.log("====================================");
+		console.log("stocks are equal");
+		console.log("====================================");
+	}
 }).catch(err => console.error(err));
 
 //
@@ -33634,6 +33681,18 @@ const checkSocket = exports.checkSocket = () => dispatch => {
 };
 //
 
+const fetchStock = exports.fetchStock = stockName => dispatch => _axios2.default.post("/api/fetchstock", {
+	data: stockName
+}).then(res => {
+	console.log(res.data);
+	//console.log(JSON.stringify(res.data));
+	dispatch(addStock(res.data));
+	/* const socket  = new socketIOClient("http://127.0.0.1:3000");
+ socket.emit("addStock", stockName); */
+}).catch(err => console.error(err));
+
+//
+
 ;
 
 var _temp = function () {
@@ -33641,7 +33700,7 @@ var _temp = function () {
 		return;
 	}
 
-	__REACT_HOT_LOADER__.register(CHECK_DB, "CHECK_DB", "C:/My Work/Stock Market/src/client/reducers/actions/stock_actions.js");
+	__REACT_HOT_LOADER__.register(UPDATE_DB, "UPDATE_DB", "C:/My Work/Stock Market/src/client/reducers/actions/stock_actions.js");
 
 	__REACT_HOT_LOADER__.register(ADD_STOCK, "ADD_STOCK", "C:/My Work/Stock Market/src/client/reducers/actions/stock_actions.js");
 
@@ -33653,11 +33712,13 @@ var _temp = function () {
 
 	__REACT_HOT_LOADER__.register(removeStock, "removeStock", "C:/My Work/Stock Market/src/client/reducers/actions/stock_actions.js");
 
-	__REACT_HOT_LOADER__.register(checkDB, "checkDB", "C:/My Work/Stock Market/src/client/reducers/actions/stock_actions.js");
+	__REACT_HOT_LOADER__.register(updateDB, "updateDB", "C:/My Work/Stock Market/src/client/reducers/actions/stock_actions.js");
 
 	__REACT_HOT_LOADER__.register(delay, "delay", "C:/My Work/Stock Market/src/client/reducers/actions/stock_actions.js");
 
 	__REACT_HOT_LOADER__.register(checkSocket, "checkSocket", "C:/My Work/Stock Market/src/client/reducers/actions/stock_actions.js");
+
+	__REACT_HOT_LOADER__.register(fetchStock, "fetchStock", "C:/My Work/Stock Market/src/client/reducers/actions/stock_actions.js");
 }();
 
 ;
@@ -34634,7 +34695,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 const stocksReducer = (state = [], action) => {
 	switch (action.type) {
-		case "CHECK_DB":
+		case "UPDATE_DB":
 			return action.data;
 
 		case "ADD_STOCK":
@@ -34642,6 +34703,7 @@ const stocksReducer = (state = [], action) => {
 
 		case "REMOVE_STOCK":
 			return action.list;
+
 		default:
 			return state;
 	}

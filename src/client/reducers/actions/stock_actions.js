@@ -3,7 +3,7 @@ import socketIOClient from "socket.io-client";
 
 //actions
 
-const CHECK_DB = "CHECK_DB";
+const UPDATE_DB = "UPDATE_DB";
 const ADD_STOCK = "ADD_STOCK";
 const REMOVE_STOCK = "REMOVE_STOCK";
 
@@ -11,7 +11,7 @@ const REMOVE_STOCK = "REMOVE_STOCK";
 
 export const getDB = data => (
 	{
-		type: CHECK_DB,
+		type: UPDATE_DB,
 		data
 	}
 );
@@ -32,14 +32,59 @@ export const removeStock = list => (
 
 //async actions
 
-export const checkDB = 
+export const updateDB = 
 	stock =>
 		dispatch => 
 			axios
-				.get("/api/stock")
+				.post("/api/stock")
 				.then(
 					res => {
-						console.log(res);
+						// console.log(res);
+						// console.log("stocks ", stock.stocks[0]["Meta Data"]["2. Symbol"]);
+						if(res.data.length > stock.stocks.length){
+							res.data.forEach(
+								item => {
+									let flag = true;
+									stock.stocks.forEach(element => {
+										if(element["Meta Data"]["2. Symbol"] == item.stockName)
+											flag = false;
+									});
+									if(flag) {
+										console.log("====================================");
+										console.log("more stocks in database");
+										console.log("====================================");
+										dispatch(fetchStock(item.stockName));
+									}
+								}
+							);
+						}
+						else if(res.data.length < stock.stocks.length){
+
+							let newStocks = [];
+
+							console.log("====================================");
+							console.log(res.data);
+							console.log("====================================");
+
+							stock.stocks.forEach(el => {
+								res.data.forEach(e => {
+									if(el["Meta Data"]["2. Symbol"] == e.stockName)
+										newStocks = [ ...newStocks, el];
+									else {
+										console.log("====================================");
+										console.log("Less stocks in state");
+										console.log("====================================");
+									}
+								});
+							});
+
+							dispatch(getDB(newStocks));
+						}
+						else {
+							console.log("====================================");
+							console.log( "stocks are equal" );
+							console.log("====================================");
+						}
 					}
 				)
 				.catch(
@@ -62,4 +107,45 @@ export const checkSocket =
 				}
 			);
 		};
+//
+
+export const fetchStock = 
+	stockName =>
+		dispatch =>
+			axios
+				.post(
+					"/api/fetchstock", 
+					{
+						data: stockName
+					}
+				)
+				.then(
+					res => {
+						console.log(res.data);
+						//console.log(JSON.stringify(res.data));
+						dispatch(addStock(res.data));
+						/* const socket  = new socketIOClient("http://127.0.0.1:3000");
+						socket.emit("addStock", stockName); */
+					}
+				)
+				.catch(err => console.error(err));	
+				
+//
+
+export const newStock = 
+	(stockName, socket) =>
+		dispatch => {
+			socket.emit("addStock", stockName);
+			dispatch(fetchStock(stockName));
+		};
+
+//
+
+
+export const daleteStock = 
+	(stockName, socket) => 
+		dispatch => {
+			socket.emit("deleteStock", stockName);
+		};
+
 //
