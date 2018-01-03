@@ -29997,6 +29997,7 @@ class Hello extends _react2.default.Component {
 		super(props);
 		this.handleClick = this.handleClick.bind(this);
 		this.handleDB = this.handleDB.bind(this);
+		this.handleDelete = this.handleDelete.bind(this);
 	}
 
 	handleClick() {
@@ -30004,9 +30005,16 @@ class Hello extends _react2.default.Component {
 
 		this.props.fetchStock("MSFT");
 	}
+
 	handleDB() {
 		console.log("handleDB clicked");
 		this.props.updateDB(this.props.stocks);
+	}
+
+	handleDelete() {
+		console.log("handleDelete clicked");
+		let socket = new _socket2.default("http://127.0.0.1:3000");
+		this.props.deleteStock("MSFT", socket);
 	}
 
 	render() {
@@ -30015,7 +30023,8 @@ class Hello extends _react2.default.Component {
 			null,
 			_react2.default.createElement(_helloWorld2.default, null),
 			_react2.default.createElement(_button2.default, { handleClick: this.handleClick }),
-			_react2.default.createElement(_button2.default, { handleClick: this.handleDB })
+			_react2.default.createElement(_button2.default, { handleClick: this.handleDB }),
+			_react2.default.createElement(_button2.default, { handleClick: this.handleDelete })
 		);
 	}
 }
@@ -30024,7 +30033,7 @@ const mapStateToProps = state => ({
 	stocks: state
 });
 
-const _default = (0, _reactRedux.connect)(mapStateToProps, { fetchStock: _stock_actions.fetchStock, updateDB: _stock_actions.updateDB })(Hello);
+const _default = (0, _reactRedux.connect)(mapStateToProps, { fetchStock: _stock_actions.fetchStock, updateDB: _stock_actions.updateDB, deleteStock: _stock_actions.deleteStock })(Hello);
 
 exports.default = _default;
 ;
@@ -33589,7 +33598,7 @@ var _temp = function () {
 Object.defineProperty(exports, "__esModule", {
 	value: true
 });
-exports.fetchStock = exports.checkSocket = exports.updateDB = exports.removeStock = exports.addStock = exports.getDB = undefined;
+exports.deleteStock = exports.newStock = exports.fetchStock = exports.checkSocket = exports.updateDB = exports.removeStock = exports.addStock = exports.getDB = undefined;
 
 var _axios = __webpack_require__(171);
 
@@ -33619,9 +33628,9 @@ const addStock = exports.addStock = stockData => ({
 	stockData
 });
 
-const removeStock = exports.removeStock = list => ({
+const removeStock = exports.removeStock = name => ({
 	type: REMOVE_STOCK,
-	list
+	name
 });
 
 //async actions
@@ -33685,11 +33694,25 @@ const fetchStock = exports.fetchStock = stockName => dispatch => _axios2.default
 	data: stockName
 }).then(res => {
 	console.log(res.data);
-	//console.log(JSON.stringify(res.data));
 	dispatch(addStock(res.data));
+	//console.log(JSON.stringify(res.data));
 	/* const socket  = new socketIOClient("http://127.0.0.1:3000");
  socket.emit("addStock", stockName); */
 }).catch(err => console.error(err));
+
+//
+
+const newStock = exports.newStock = (stockName, socket) => dispatch => {
+	socket.emit("addStock", stockName);
+	dispatch(fetchStock(stockName));
+};
+
+//
+
+const deleteStock = exports.deleteStock = (stockName, socket) => dispatch => {
+	socket.emit("deleteStock", stockName);
+	dispatch(removeStock(stockName));
+};
 
 //
 
@@ -33719,6 +33742,10 @@ var _temp = function () {
 	__REACT_HOT_LOADER__.register(checkSocket, "checkSocket", "C:/My Work/Stock Market/src/client/reducers/actions/stock_actions.js");
 
 	__REACT_HOT_LOADER__.register(fetchStock, "fetchStock", "C:/My Work/Stock Market/src/client/reducers/actions/stock_actions.js");
+
+	__REACT_HOT_LOADER__.register(newStock, "newStock", "C:/My Work/Stock Market/src/client/reducers/actions/stock_actions.js");
+
+	__REACT_HOT_LOADER__.register(deleteStock, "deleteStock", "C:/My Work/Stock Market/src/client/reducers/actions/stock_actions.js");
 }();
 
 ;
@@ -34702,7 +34729,7 @@ const stocksReducer = (state = [], action) => {
 			return [...state, action.stockData];
 
 		case "REMOVE_STOCK":
-			return action.list;
+			return state.filter(stock => stock["Meta Data"]["2. Symbol"] !== action.name);
 
 		default:
 			return state;

@@ -47,7 +47,7 @@ export default (app, io) => {
 			socket.on(
 				"addStock",
 				data => {
-					let stock = new stockModel({
+					const stock = new stockModel({
 						stockName: data.toUpperCase()
 					});
 
@@ -55,10 +55,33 @@ export default (app, io) => {
 						(err, res) => {
 							if(err) console.error(err);
 							console.log(`Added new stock ${data.toUpperCase()}`);
+							
 						}
 					);
 				}
 			);
+
+			socket.on(
+				"deleteStock",
+				data => {
+					stockModel.remove(
+						{
+							stockName: data
+						},
+						(err, res) => {
+							if(err) console.error(err);
+
+							else {
+								console.log("====================================");
+								console.log(`Removed stock ${data}`);
+								console.log("====================================");
+								console.log(res);
+							}
+						}
+					);
+				}
+			);
+			
 		}
 	);
 };

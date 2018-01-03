@@ -23,10 +23,10 @@ export const addStock = stockData => (
 	}
 );
 
-export const removeStock = list => (
+export const removeStock = name => (
 	{
 		type: REMOVE_STOCK,
-		list
+		name
 	}
 );
 
@@ -122,10 +122,10 @@ export const fetchStock =
 				.then(
 					res => {
 						console.log(res.data);
-						//console.log(JSON.stringify(res.data));
 						dispatch(addStock(res.data));
+						//console.log(JSON.stringify(res.data));
 						/* const socket  = new socketIOClient("http://127.0.0.1:3000");
-						socket.emit("addStock", stockName); */
+						socket.emit("addStock", stockName); */ 
 					}
 				)
 				.catch(err => console.error(err));	
@@ -141,11 +141,11 @@ export const newStock =
 
 //
 
-
-export const daleteStock = 
+export const deleteStock = 
 	(stockName, socket) => 
 		dispatch => {
 			socket.emit("deleteStock", stockName);
+			dispatch(removeStock(stockName));
 		};
 
 //
