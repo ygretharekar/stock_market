@@ -38,6 +38,36 @@ app.post(
 	}
 );
 
+app.post("/api/fetchstocks", (req, res) => {
+	let {data} = req.body;
+
+	axios
+		.get(
+			`https://www.quandl.com/api/v3/datasets/WIKI/${data}/data.json`,
+			{
+				params: {
+					api_key: process.env.QUANDL_API
+				}
+			}
+		)
+		.then(
+			resp => {
+				//console.log(resp);
+				res
+					.status(200)
+					.json(resp.data);
+			}
+		)
+		.catch(
+			err => {
+				console.error(err);
+				res
+					.status(404)
+					.send("stocks not found");
+			}
+		);
+});
+
 app.post(
 	"/api/stock",
 	(req, res) => {

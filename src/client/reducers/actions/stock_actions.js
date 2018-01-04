@@ -114,7 +114,7 @@ export const fetchStock =
 		dispatch =>
 			axios
 				.post(
-					"/api/fetchstock", 
+					"/api/fetchstocks", 
 					{
 						data: stockName
 					}

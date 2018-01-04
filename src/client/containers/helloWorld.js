@@ -1,10 +1,11 @@
 import React from "react";
 import {connect} from "react-redux";
 import socketIOClient from "socket.io-client";
-
-import HelloWorld from "../components/helloWorld";
-import Buttons from "../components/button";
 import { fetchStock, updateDB, deleteStock } from "../reducers/actions/stock_actions";
+
+import Buttons from "../components/button";
+import D3 from "../components/d3Comp";
+import HelloWorld from "../components/helloWorld";
 
 class Hello extends React.Component {
 	constructor(props){
@@ -12,6 +13,7 @@ class Hello extends React.Component {
 		this.handleClick = this.handleClick.bind(this);
 		this.handleDB = this.handleDB.bind(this);
 		this.handleDelete = this.handleDelete.bind(this);
+		this.printStocks = this.printStocks.bind(this);
 	}
 
 
@@ -32,6 +34,12 @@ class Hello extends React.Component {
 		this.props.deleteStock("MSFT", socket);
 	}
 
+	printStocks(){
+		console.log("====================================");
+		console.log( this.props.stocks );
+		console.log("====================================");
+	}
+
 	render(){
 		return(
 			<div>
@@ -39,6 +47,11 @@ class Hello extends React.Component {
 				<Buttons handleClick={this.handleClick} />
 				<Buttons handleClick={this.handleDB} />
 				<Buttons handleClick={this.handleDelete} />
+				<Buttons handleClick={this.printStocks} />
+				{
+					this.props.stocks.stocks.length > 0 &&
+					<D3 stocks = { this.props.stocks} />  
+				}
 			</div>
 		);
 	}
@@ -49,5 +62,6 @@ const mapStateToProps = state => (
 		stocks: state
 	}
 );
+
 
 export default connect(mapStateToProps, { fetchStock, updateDB, deleteStock })(Hello);
