@@ -4,7 +4,10 @@ const stocksReducer = (state = [], action) => {
 		return action.data; 
 
 	case "ADD_STOCK":
-		return [...state, action.stockData];
+		return [
+			...state,
+			action.stockData
+		];
 
 	case "REMOVE_STOCK":
 		return state.filter(

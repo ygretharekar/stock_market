@@ -19612,7 +19612,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _redux = __webpack_require__(39);
 
-var _stocks = __webpack_require__(609);
+var _stocks = __webpack_require__(610);
 
 var _stocks2 = _interopRequireDefault(_stocks);
 
@@ -19659,7 +19659,7 @@ var _routes = __webpack_require__(262);
 
 var _routes2 = _interopRequireDefault(_routes);
 
-var _store = __webpack_require__(607);
+var _store = __webpack_require__(608);
 
 var _store2 = _interopRequireDefault(_store);
 
@@ -41789,21 +41789,37 @@ var _helloWorld = __webpack_require__(606);
 
 var _helloWorld2 = _interopRequireDefault(_helloWorld);
 
+var _row = __webpack_require__(607);
+
+var _row2 = _interopRequireDefault(_row);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 class Hello extends _react2.default.Component {
 	constructor(props) {
 		super(props);
+		this.state = {
+			width: 0,
+			height: 0,
+			search: "",
+			submit: false
+		};
 		this.handleClick = this.handleClick.bind(this);
 		this.handleDB = this.handleDB.bind(this);
 		this.handleDelete = this.handleDelete.bind(this);
+		this.handleChange = this.handleChange.bind(this);
 		this.printStocks = this.printStocks.bind(this);
+		this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
 	}
 
 	handleClick() {
 		console.log("handleclick clicked");
 
-		this.props.fetchStock("MSFT");
+		this.setState({
+			submit: true
+		});
+
+		this.props.fetchStock(this.state.search);
 	}
 
 	handleDB() {
@@ -41823,16 +41839,57 @@ class Hello extends _react2.default.Component {
 		console.log("====================================");
 	}
 
+	componentDidMount() {
+		this.updateWindowDimensions();
+		window.addEventListener("resize", this.updateWindowDimensions);
+	}
+
+	componentWillUnmount() {
+		window.removeEventListener("resize", this.updateWindowDimensions);
+	}
+
+	updateWindowDimensions() {
+		this.setState({ width: window.innerWidth, height: window.innerHeight });
+	}
+
+	handleChange(e) {
+
+		this.setState({
+			search: e.target.value,
+			submit: false
+		});
+	}
+
 	render() {
 		return _react2.default.createElement(
 			"div",
-			null,
-			_react2.default.createElement(_helloWorld2.default, null),
-			_react2.default.createElement(_button2.default, { handleClick: this.handleClick }),
-			_react2.default.createElement(_button2.default, { handleClick: this.handleDB }),
-			_react2.default.createElement(_button2.default, { handleClick: this.handleDelete }),
-			_react2.default.createElement(_button2.default, { handleClick: this.printStocks }),
-			this.props.stocks.stocks.length > 0 && _react2.default.createElement(_d3Comp2.default, { stocks: this.props.stocks })
+			{ className: "container" },
+			_react2.default.createElement(
+				"div",
+				{ className: "row" },
+				_react2.default.createElement(_row2.default, {
+					change: this.handleChange,
+					value: this.state.search,
+					handleClick: this.handleClick.bind(this)
+				}),
+				_react2.default.createElement(
+					"div",
+					{ className: "col-9", style: { background: "rgb(215, 242, 243)" } },
+					_react2.default.createElement(
+						"div",
+						{ className: "container" },
+						_react2.default.createElement(_helloWorld2.default, null),
+						_react2.default.createElement(_button2.default, { handleClick: this.handleDB }),
+						_react2.default.createElement(_button2.default, { handleClick: this.handleDelete }),
+						_react2.default.createElement(_button2.default, { handleClick: this.printStocks }),
+						this.props.stocks.stocks.length > 0 && this.state.submit && _react2.default.createElement(_d3Comp2.default, {
+							stocks: this.props.stocks,
+							width: this.state.width,
+							height: this.state.width
+						})
+					)
+				)
+			)
 		);
 	}
 }
@@ -45372,7 +45429,7 @@ const updateDB = exports.updateDB = stock => dispatch => _axios2.default.post("/
 		res.data.forEach(item => {
 			let flag = true;
 			stock.stocks.forEach(element => {
-				if (element["Meta Data"]["2. Symbol"] == item.stockName) flag = false;
+				if (element.dataset_data == item.stockName) flag = false;
 			});
 			if (flag) {
 				console.log("====================================");
@@ -45420,11 +45477,13 @@ const checkSocket = exports.checkSocket = () => dispatch => {
 };
 //
 
+
 const fetchStock = exports.fetchStock = stockName => dispatch => _axios2.default.post("/api/fetchstocks", {
 	data: stockName
 }).then(res => {
-	console.log(res.data);
-	dispatch(addStock(res.data));
+	let data = { stockName, data: res.data };
+	console.log(data);
+	dispatch(addStock(data));
 	//console.log(JSON.stringify(res.data));
 	/* const socket  = new socketIOClient("http://127.0.0.1:3000");
  socket.emit("addStock", stockName); */
@@ -46392,7 +46451,10 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 const _default = props => _react2.default.createElement(
 	"button",
-	{ onClick: props.handleClick },
+	{
+		className: "btn btn-secondary",
+		onClick: props.handleClick
+	},
 	"Test"
 );
 
@@ -46422,6 +46484,8 @@ var _temp = function () {
 Object.defineProperty(exports, "__esModule", {
 	value: true
 });
+
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
 var _react = __webpack_require__(1);
 
@@ -46456,69 +46520,171 @@ var _coordinates = __webpack_require__(599);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 const _default = props => {
-	/* let stockData = props.stocks.stocks.map(
- 	s => {
- 		console.log("====================================");
- 		console.log(s);
- 		console.log("====================================");
- 	}
- ); */
 
-	let data = props.stocks.stocks[0].dataset_data.data.map(element => {
-		/* console.log("====================================");
-  console.log((new Date(element[0])).toDateString());
-  console.log("===================================="); */
+	let numberFormat = (0, _d3Format.format)(".2f");
+	let dateFormat = (0, _d3TimeFormat.timeFormat)("%Y-%m-%d");
 
-		return { date: new Date(element[0]).getTime(), info: element[1] };
+	let symbols = [];
+	let array = [];
+	props.stocks.stocks.forEach(dataset => {
+
+		symbols.push(dataset.stockName);
+
+		if (array.length === 0) {
+			array = dataset.data.dataset_data.data.map(element => ({
+				date: new Date(element[0]).getTime(),
+				[dataset.stockName]: element
+			}));
+		} else {
+			console.log("more than 1");
+
+			if (array.length >= dataset.data.dataset_data.data.length) {
+				dataset.data.dataset_data.data.forEach((info, i) => {
+					let dt = new Date(info[0]).getTime();
+					console.log("array is bigger...");
+					array.forEach(element => {
+						if (element.date === dt) {
+							array[i] = _extends({}, array[i], {
+								[dataset.stockName]: info
+							});
+						}
+					});
+				});
+				array.splice(dataset.data.dataset_data.data.length - 1);
+			} else if (array.length < dataset.data.dataset_data.data.length) {
+				console.log("array is smaller...");
+				array.forEach((info, i) => {
+					let dt = info.date;
+					dataset.data.dataset_data.data.forEach(element => {
+						if (new Date(element[0]).getTime() === dt) {
+							console.log("found 1....");
+
+							array[i] = _extends({}, array[i], {
+								[dataset.stockName]: element
+							});
+						}
+					});
+				});
+			}
+		}
 	});
 
-	data = data.reverse();
+	let arr = array.reverse();
 
 	console.log("====================================");
-	console.log(data);
+	console.log("data is ", arr, "symbols ", symbols);
 	console.log("====================================");
 
-	/* let array = data[0] ? data[0]: [];
- 
- console.log("====================================");
- console.log( array );
- console.log("====================================");
- */
-	return _react2.default.createElement(
-		"div",
-		null,
-		_react2.default.createElement(
-			_reactStockcharts.ChartCanvas,
-			{ ratio: 0.5, width: 700, height: 400,
-				margin: { left: 50, right: 50, top: 10, bottom: 30 },
-				seriesName: "MSFT",
-				data: data, type: "svg",
-				displayXAccessor: d => d.date,
-				xAccessor: d => d.date, xScale: (0, _d3Scale.scaleTime)(),
-				xExtents: [new Date(1986, 3, 13), new Date(2018, 1, 3)]
-			},
-			_react2.default.createElement(_annotation.Label, { x: (700 - 50 - 50) / 2, y: 30,
-				fontSize: 30, text: "MSFT" }),
-			_react2.default.createElement(
-				_reactStockcharts.Chart,
-				{ id: 0, yExtents: d => d.info },
-				_react2.default.createElement(_axes.XAxis, { axisAt: "bottom", orient: "bottom", ticks: 10 }),
-				_react2.default.createElement(_coordinates.MouseCoordinateX, {
-					at: "bottom",
-					orient: "bottom",
-					displayFormat: (0, _d3TimeFormat.timeFormat)("%Y-%m-%d") }),
-				_react2.default.createElement(_coordinates.MouseCoordinateY, {
-					at: "right",
-					orient: "right",
-					displayFormat: (0, _d3Format.format)(".2f") }),
-				_react2.default.createElement(_axes.YAxis, { axisAt: "left", orient: "left" }),
-				_react2.default.createElement(_series.AreaSeries, { yAccessor: d => d.info })
-			)
-		)
-	);
+	let tooltipContent = ys => ({ currentItem, xAccessor }) => ({
+		x: dateFormat(xAccessor(currentItem)),
+		y: [{
+			label: "open",
+			value: currentItem[3] && numberFormat(currentItem[3])
+		}].concat(ys.map(each => ({
+			label: each.label,
+			value: each.value(currentItem),
+			stroke: each.stroke
+		}))).filter(line => line.value)
+	});
+
+	const ema20 = (0, _indicator.ema)().id(0).options({ windowSize: 20 }).merge((d, c) => {
+		d.ema20 = c;
+	}).accessor(d => d.ema20);
+
+	const ema50 = (0, _indicator.ema)().id(0).options({ windowSize: 50 }).merge((d, c) => {
+		d.ema50 = c;
+	}).accessor(d => d.ema50);
+
+	return _react2.default.createElement("div", { className: "container" });
 };
 
 exports.default = _default;
+
+/* let array = data[0] ? data[0]: [];
+
+	console.log("====================================");
+	console.log( array );
+	console.log("====================================");
+	*/
+
+/* let stockData = props.stocks.stocks.map(
+		s => {
+			console.log("====================================");
+			console.log(s);
+			console.log("====================================");
+		}
+	); */
+
+/* let data = props.stocks.stocks[0].dataset_data.data.map(element => {
+	console.log("====================================");
+	console.log((new Date(element[0])).toDateString());
+	console.log("===================================="); 
+
+	return { date: new Date(element[0]).getTime(), info: element };
+}); */
+
+{/* <Chart id={0} yExtents={d => d.info[1]}>
+ <XAxis axisAt="bottom" orient="bottom" ticks={10}/>
+ <MouseCoordinateX
+ 	at="bottom"
+ 	orient="bottom"
+ 	displayFormat={timeFormat("%Y-%m-%d")} />
+ <MouseCoordinateY
+ 	at="right"
+ 	orient="right"
+ 	displayFormat={format(".2f")} />
+ 
+ <Label x={(600) / 2} y={ 455}
+ 	fontSize={12} text="XAxis Label here" />
+ 
+ <YAxis axisAt="left" orient="left" />
+ <AreaSeries yAccessor={ d => d.info[1]}/>
+ 
+ <HoverTooltip
+ 	yAccessor={ema50.accessor()}
+ 	tooltipContent={tooltipContent([
+ 		{
+ 			label: "MSFT",
+ 			value: d => d.info[1],
+ 			stroke: ema20.stroke()
+ 		}
+ 	])}
+ 	fontSize={15}
+ </Chart> */}
+
+{} /* <Chart id={1} yExtents={d => d.info[4]}>
+   <XAxis axisAt="bottom" orient="bottom" ticks={10}/>
+   <MouseCoordinateX
+   	at="bottom"
+   	orient="bottom"
+   	displayFormat={timeFormat("%Y-%m-%d")} />
+   <MouseCoordinateY
+   	at="right"
+   	orient="right"
+   	displayFormat={format(".2f")} />
+   
+   <Label x={(600) / 2} y={ 455}
+   	fontSize={12} text="XAxis Label here" />
+   
+   <YAxis axisAt="left" orient="left" />
+   
+   <LineSeries yAccessor={ d => d.info[4]} stroke={ema20.stroke()} highlightOnHover />
+   
+   
+   <HoverTooltip
+   	yAccessor={ema50.accessor()}
+   	tooltipContent={tooltipContent([
+   		{
+   			label: "MSFT",
+   			value: d => d.info[1],
+   			stroke: ema20.stroke()
+   		}
+   	])}
+   	fontSize={15}
+   />
+   
+   
+   </Chart> */
 
 // s => {
 // 				{/* console.log(JSON.stringify(s["Time Series (1min)"])); */
@@ -69912,8 +70078,112 @@ var _temp = function () {
 "use strict";
 /* WEBPACK VAR INJECTION */(function(process) {
 
+Object.defineProperty(exports, "__esModule", {
+	value: true
+});
+
+var _react = __webpack_require__(1);
+
+var _react2 = _interopRequireDefault(_react);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+const _default = props => {
+	return _react2.default.createElement(
+		"div",
+		{ className: "col-3 sidebar" },
+		_react2.default.createElement(
+			"div",
+			{ className: "container d-flex flex-column justify-content-end" },
+			_react2.default.createElement(
+				"ul",
+				{ className: "nav nav-pills flex-column text-center" },
+				_react2.default.createElement(
+					"li",
+					{ className: "nav-item" },
+					_react2.default.createElement(
+						"a",
+						{ className: "nav-link active", href: "#" },
+						"Active"
+					)
+				),
+				_react2.default.createElement(
+					"li",
+					{ className: "nav-item" },
+					_react2.default.createElement(
+						"a",
+						{ className: "nav-link", href: "#" },
+						"Link"
+					)
+				),
+				_react2.default.createElement(
+					"li",
+					{ className: "nav-item" },
+					_react2.default.createElement(
+						"a",
+						{ className: "nav-link", href: "#" },
+						"Link"
+					)
+				),
+				_react2.default.createElement(
+					"li",
+					{ className: "nav-item" },
+					_react2.default.createElement(
+						"a",
+						{ className: "nav-link disabled", href: "#" },
+						"Disabled"
+					)
+				)
+			),
+			_react2.default.createElement(
+				"div",
+				{ className: "flex-column text-center" },
+				_react2.default.createElement("input", {
+					type: "text",
+					className: "form-control",
+					name: "search",
+					onChange: props.change,
+					value: props.value
+
+				}),
+				_react2.default.createElement(
+					"button",
+					{
+						className: "btn btn-block btn-primary",
+						onClick: props.handleClick
+					},
+					"Add Stock"
+				)
+			)
+		)
+	);
+};
+
+exports.default = _default;
+;
+
+var _temp = function () {
+	if (typeof __REACT_HOT_LOADER__ === 'undefined') {
+		return;
+	}
+
+	__REACT_HOT_LOADER__.register(_default, "default", "C:/My Work/Stock Market/src/client/components/row.js");
+}();
+
+;
+
+ ;(function register() { /* react-hot-loader/webpack */ if (process.env.NODE_ENV !== 'production') { if (typeof __REACT_HOT_LOADER__ === 'undefined') { return; } /* eslint-disable camelcase, no-undef */ var webpackExports = typeof __webpack_exports__ !== 'undefined' ? __webpack_exports__ : module.exports; /* eslint-enable camelcase, no-undef */ if (typeof webpackExports === 'function') { __REACT_HOT_LOADER__.register(webpackExports, 'module.exports', "C:\\My Work\\Stock Market\\src\\client\\components\\row.js"); return; } /* eslint-disable no-restricted-syntax */ for (var key in webpackExports) { /* eslint-enable no-restricted-syntax */ if (!Object.prototype.hasOwnProperty.call(webpackExports, key)) { continue; } var namedExport = void 0; try { namedExport = webpackExports[key]; } catch (err) { continue; } __REACT_HOT_LOADER__.register(namedExport, key, "C:\\My Work\\Stock Market\\src\\client\\components\\row.js"); } } })();
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
+
+/***/ }),
+/* 608 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(process) {
+
 const NODE_ENV = "dev";
-if (NODE_ENV === "prod") module.exports = __webpack_require__(608);else module.exports = __webpack_require__(610);
+if (NODE_ENV === "prod") module.exports = __webpack_require__(609);else module.exports = __webpack_require__(611);
 ;
 
 var _temp = function () {
@@ -69930,7 +70200,7 @@ var _temp = function () {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ }),
-/* 608 */
+/* 609 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -69973,7 +70243,7 @@ var _temp = function () {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ }),
-/* 609 */
+/* 610 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -70018,7 +70288,7 @@ var _temp = function () {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ }),
-/* 610 */
+/* 611 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -70034,11 +70304,11 @@ var _reduxThunk = __webpack_require__(224);
 
 var _reduxThunk2 = _interopRequireDefault(_reduxThunk);
 
-var _reduxImmutableStateInvariant = __webpack_require__(611);
+var _reduxImmutableStateInvariant = __webpack_require__(612);
 
 var _reduxImmutableStateInvariant2 = _interopRequireDefault(_reduxImmutableStateInvariant);
 
-var _reduxDevtoolsExtension = __webpack_require__(615);
+var _reduxDevtoolsExtension = __webpack_require__(616);
 
 var _combine = __webpack_require__(225);
 
@@ -70067,7 +70337,7 @@ var _temp = function () {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ }),
-/* 611 */
+/* 612 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -70082,15 +70352,15 @@ var _invariant = __webpack_require__(14);
 
 var _invariant2 = _interopRequireDefault(_invariant);
 
-var _jsonStringifySafe = __webpack_require__(612);
+var _jsonStringifySafe = __webpack_require__(613);
 
 var _jsonStringifySafe2 = _interopRequireDefault(_jsonStringifySafe);
 
-var _isImmutable = __webpack_require__(613);
+var _isImmutable = __webpack_require__(614);
 
 var _isImmutable2 = _interopRequireDefault(_isImmutable);
 
-var _trackForMutations = __webpack_require__(614);
+var _trackForMutations = __webpack_require__(615);
 
 var _trackForMutations2 = _interopRequireDefault(_trackForMutations);
 
@@ -70141,7 +70411,7 @@ function immutableStateInvariantMiddleware() {
 }
 
 /***/ }),
-/* 612 */
+/* 613 */
 /***/ (function(module, exports) {
 
 exports = module.exports = stringify
@@ -70174,7 +70444,7 @@ function serializer(replacer, cycleReplacer) {
 
 
 /***/ }),
-/* 613 */
+/* 614 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -70192,7 +70462,7 @@ function isImmutableDefault(value) {
 }
 
 /***/ }),
-/* 614 */
+/* 615 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -70279,7 +70549,7 @@ function _detectMutations(isImmutable) {
 }
 
 /***/ }),
-/* 615 */
+/* 616 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

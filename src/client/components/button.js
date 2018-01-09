@@ -2,7 +2,10 @@ import React from "react";
 
 
 export default props => (
-	<button onClick={props.handleClick}>
+	<button 
+		className="btn btn-secondary"
+		onClick={props.handleClick}
+	>
 		Test
 	</button>
 );

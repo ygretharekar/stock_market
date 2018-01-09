@@ -46,7 +46,7 @@ export const updateDB =
 								item => {
 									let flag = true;
 									stock.stocks.forEach(element => {
-										if(element["Meta Data"]["2. Symbol"] == item.stockName)
+										if(element.dataset_data == item.stockName)
 											flag = false;
 									});
 									if(flag) {
@@ -95,7 +95,6 @@ export const updateDB =
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
-
 export const checkSocket =
 	() =>
 		dispatch => {
@@ -109,7 +108,8 @@ export const checkSocket =
 		};
 //
 
-export const fetchStock = 
+
+export const fetchStock =
 	stockName =>
 		dispatch =>
 			axios
@@ -121,8 +121,9 @@ export const fetchStock =
 				)
 				.then(
 					res => {
-						console.log(res.data);
-						dispatch(addStock(res.data));
+						let data = { stockName, data: res.data };
+						console.log(data);
+						dispatch(addStock(data));
 						//console.log(JSON.stringify(res.data));
 						/* const socket  = new socketIOClient("http://127.0.0.1:3000");
 						socket.emit("addStock", stockName); */ 
@@ -148,4 +149,5 @@ export const deleteStock =
 			dispatch(removeStock(stockName));
 		};
 
+		
 //
