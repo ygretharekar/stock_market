@@ -46536,6 +46536,9 @@ const _default = props => {
 				[dataset.stockName]: element
 			}));
 		} else {
+
+			if (array.length > 1500) array.splice(1500);
+
 			console.log("more than 1");
 
 			if (array.length >= dataset.data.dataset_data.data.length) {
@@ -46595,7 +46598,53 @@ const _default = props => {
 		d.ema50 = c;
 	}).accessor(d => d.ema50);
 
-	return _react2.default.createElement("div", { className: "container" });
+	return _react2.default.createElement(
+		"div",
+		{ className: "container" },
+		_react2.default.createElement(
+			_reactStockcharts.ChartCanvas,
+			{
+				ratio: props.width / props.height,
+				width: props.width * 0.7,
+				height: props.height * 0.4,
+				margin: { left: 50, right: 50, top: 10, bottom: 30 },
+				seriesName: "Chart stock market",
+				data: arr, type: "svg",
+				displayXAccessor: d => d.date,
+				xAccessor: d => d.date, xScale: (0, _d3Scale.scaleTime)(),
+				xExtents: [new Date(1986, 3, 13), new Date(2018, 1, 3)]
+			},
+			_react2.default.createElement(_annotation.Label, { x: 300, y: 30,
+				fontSize: 30, text: "Chart stock market" }),
+			symbols.map((s, i) => {
+				return _react2.default.createElement(
+					_reactStockcharts.Chart,
+					{
+						key: i,
+						id: i,
+						yPan: true, yExtents: d => d[s][4]
+					},
+					_react2.default.createElement(_axes.XAxis, { axisAt: "bottom", orient: "bottom", ticks: 6 }),
+					_react2.default.createElement(_coordinates.MouseCoordinateX, {
+						at: "bottom",
+						orient: "bottom",
+						displayFormat: (0, _d3TimeFormat.timeFormat)("%Y-%m-%d") }),
+					_react2.default.createElement(_coordinates.MouseCoordinateY, {
+						at: "right",
+						orient: "right",
+						displayFormat: (0, _d3Format.format)(".2f") }),
+					_react2.default.createElement(_annotation.Label, { x: 600 / 2, y: 455,
+						fontSize: 12, text: "Something" }),
+					_react2.default.createElement(_axes.YAxis, { axisAt: "left", orient: "left" }),
+					_react2.default.createElement(_series.LineSeries, {
+						yAccessor: d => d[s][4],
+						stroke: "#" + i * 111 + 333,
+						highlightOnHover: true
+					})
+				);
+			})
+		)
+	);
 };
 
 exports.default = _default;

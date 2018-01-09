@@ -154,7 +154,7 @@ export default props => {
 				<Label x={300} y={30}
 					fontSize= {30} text="Chart stock market" />
 
-				<Chart 
+				{/* <Chart 
 					id={0}
 					yPan yExtents={[d => [d.high, d.low], ema20.accessor(), ema50.accessor()]}
 				>
@@ -202,8 +202,9 @@ export default props => {
 						])}
 						fontSize={15}
 					/>
-				</Chart>				
-				{
+				</Chart> */}
+
+				{/* {
 					symbols.map(
 						(s, i) => {
 							return(
@@ -211,7 +212,6 @@ export default props => {
 									key={i}
 									id={i}
 									yPan yExtents={d => d[s][4]}
-
 								>
 									<XAxis axisAt="bottom" orient="bottom" ticks={6}/>
 									<MouseCoordinateX
@@ -224,20 +224,53 @@ export default props => {
 										displayFormat={format(".2f")} />
 
 									<Label x={(600) / 2} y={ 455}
-										fontSize={12} text="Something" />
+										fontSize={12} text={ s } />
 
 									<YAxis axisAt="left" orient="left" />
 
 									<LineSeries 
 										yAccessor={d => d[s][4]} 
 										stroke={"#" + i*111 + 333} 
-										highlightOnHover 
+										highlightOnHover
 									/>
 								</Chart>
 							);
 						}
 					)
-				}
+				} */
+				
+				<Chart
+					id={0}
+					yPan yExtents={
+						d => {
+							return( d[symbols[0]][4] );
+
+						}
+					}
+				>
+					<XAxis axisAt="bottom" orient="bottom" ticks={6}/>
+					<MouseCoordinateX
+						at="bottom"
+						orient="bottom"
+						displayFormat={timeFormat("%Y-%m-%d")} />
+					<MouseCoordinateY
+						at="right"
+						orient="right"
+						displayFormat={format(".2f")} />
+
+					<Label x={(600) / 2} y={ 455}
+						fontSize={12} text={ s } />
+
+					<YAxis axisAt="left" orient="left" />
+
+					<LineSeries 
+						yAccessor={d => d[s][4]} 
+						stroke={"#" + i*111 + 333} 
+						highlightOnHover
+					/>
+				</Chart>
+
+				
 			</ChartCanvas>
 		</div>
 	);
