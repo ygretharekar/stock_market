@@ -7,6 +7,7 @@ import Buttons from "../components/button";
 import D3 from "../components/d3Comp";
 import HelloWorld from "../components/helloWorld";
 import Sidebar from "../components/row";
+import ChartName from "../components/chartName";
 
 class Hello extends React.Component {
 	constructor(props){
@@ -16,12 +17,14 @@ class Hello extends React.Component {
 			height: 0,
 			search: "",
 			submit: false,
+			stocks: [],
+			searching: false
 		};
+
 		this.handleClick = this.handleClick.bind(this);
 		this.handleDB = this.handleDB.bind(this);
 		this.handleDelete = this.handleDelete.bind(this);
 		this.handleChange = this.handleChange.bind(this);
-		this.printStocks = this.printStocks.bind(this);
 		this.updateWindowDimensions = this.updateWindowDimensions.bind(this);
 	}
 
@@ -30,7 +33,12 @@ class Hello extends React.Component {
 
 		this.setState(
 			{
-				submit: true
+				submit: true,
+				searching: true,
+				stocks: [
+					...this.state.stocks,
+					this.state.search
+				]
 			}
 		);
 
@@ -42,18 +50,11 @@ class Hello extends React.Component {
 		this.props.updateDB(this.props.stocks);
 	}
 
-	handleDelete(){
+	handleDelete(stock){
 		console.log("handleDelete clicked");
 		let socket = new socketIOClient("http://127.0.0.1:3000");
-		this.props.deleteStock("MSFT", socket);
+		this.props.deleteStock(stock, socket);
 	}
-
-	printStocks(){
-		console.log("====================================");
-		console.log( this.props.stocks );
-		console.log("====================================");
-	}
-
 
 	componentDidMount() {
 		this.updateWindowDimensions();
@@ -65,14 +66,19 @@ class Hello extends React.Component {
 	}
 
 
+	componentWillReceiveProps(nextProps){
+		this.setState(
+			{
+				searching: false
+			}
+		);
+	}
 
 	updateWindowDimensions() {
 		this.setState({ width: window.innerWidth, height: window.innerHeight });
 	}
 
-
-	handleChange(e){
-		
+	handleChange(e){	
 		this.setState(
 			{
 				search: e.target.value,
@@ -88,19 +94,25 @@ class Hello extends React.Component {
 					<Sidebar 
 						change = {this.handleChange}
 						value = {this.state.search}
-						handleClick={this.handleClick.bind(this) }
+						handleClick={this.handleClick.bind(this)}
+						stocks = {this.state.stocks}
 					/>
 					<div className="col-9" style={{background: "rgb(215, 242, 243)"}}>
 						<div className="container">
-							<HelloWorld />
-							{/* <Buttons handleClick={this.handleClick} /> */}
+							{
+								this.state.searching ?
+									<HelloWorld />:
+									<ChartName />
+							}
+
 							<Buttons handleClick={this.handleDB} />
 							<Buttons handleClick={this.handleDelete} />
 							<Buttons handleClick={this.printStocks} />
 							{
 								this.props.stocks.stocks.length > 0 &&
 								this.state.submit &&
-								<D3 
+								!this.state.searching &&
+								<D3
 									stocks = {this.props.stocks}
 									width = {this.state.width}
 									height = {this.state.width}

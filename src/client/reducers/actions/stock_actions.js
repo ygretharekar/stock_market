@@ -123,10 +123,8 @@ export const fetchStock =
 					res => {
 						let data = { stockName, data: res.data };
 						console.log(data);
+						socket.emit("addStock", stockName);
 						dispatch(addStock(data));
-						//console.log(JSON.stringify(res.data));
-						/* const socket  = new socketIOClient("http://127.0.0.1:3000");
-						socket.emit("addStock", stockName); */ 
 					}
 				)
 				.catch(err => console.error(err));	
@@ -148,6 +146,5 @@ export const deleteStock =
 			socket.emit("deleteStock", stockName);
 			dispatch(removeStock(stockName));
 		};
-
 		
 //

@@ -11,9 +11,9 @@ const stocksReducer = (state = [], action) => {
 
 	case "REMOVE_STOCK":
 		return state.filter(
-			stock => stock["Meta Data"]["2. Symbol"] !== action.name
+			stock => stock.stockName !== action.name
 		);
-	
+
 	default:
 		return state;
 	}

@@ -1,22 +1,27 @@
 import React from "react";
 
 export default props => {
+
 	return(
 		<div className="col-3 sidebar">
-			<div className="container d-flex flex-column justify-content-end">
-				<ul className="nav nav-pills flex-column text-center">
-					<li className="nav-item">
-						<a className="nav-link active" href="#">Active</a>
-					</li>
-					<li className="nav-item">
-						<a className="nav-link" href="#">Link</a>
-					</li>
-					<li className="nav-item">
-						<a className="nav-link" href="#">Link</a>
-					</li>
-					<li className="nav-item">
-						<a className="nav-link disabled" href="#">Disabled</a>
-					</li>
+			<div className="container d-flex flex-column justify-content-between">
+				<ul className="nav nav-pills flex-column text-center"  style={{marginTop: "20px"}}  >	
+					{
+						props.stocks.length > 0 &&
+						props.stocks.map(
+							(s, i) => (
+								<li key={i}>
+									<button 
+										className={ "btn btn-block btn-secondary" }
+										style={{marginTop: "5px"}}
+										onClick={() => props.delete(s)}
+									>
+										{s}
+									</button>
+								</li>
+							)
+						)
+					}
 				</ul>
 				<div className="flex-column text-center">
 					<input 
@@ -25,13 +30,14 @@ export default props => {
 						name="search"
 						onChange={ props.change }
 						value = { props.value }
-
+						placeholder="stock symbol...."
 					/>
 					<button 
 						className="btn btn-block btn-primary"
 						onClick = {props.handleClick}
+						style = {{margin: "5px 0"}}
 					>
-						Add Stock
+						Add Stocks
 					</button>
 				</div>
 			</div>

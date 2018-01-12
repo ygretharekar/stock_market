@@ -80,8 +80,7 @@ export default (app, io) => {
 						}
 					);
 				}
-			);
-			
+			);		
 		}
 	);
 };
