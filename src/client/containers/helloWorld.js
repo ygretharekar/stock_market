@@ -1,7 +1,7 @@
 import React from "react";
 import {connect} from "react-redux";
 import socketIOClient from "socket.io-client";
-import { fetchStock, updateDB, deleteStock } from "../reducers/actions/stock_actions";
+import { fetchStock, updateDB, deleteStock, newStock } from "../reducers/actions/stock_actions";
 
 import Buttons from "../components/button";
 import D3 from "../components/d3Comp";
@@ -16,9 +16,11 @@ class Hello extends React.Component {
 			width: 0, 
 			height: 0,
 			search: "",
-			submit: false,
+			submit: true,
 			stocks: [],
-			searching: false
+			searching: false,
+			socket: null,
+			done: false
 		};
 
 		this.handleClick = this.handleClick.bind(this);
@@ -29,20 +31,18 @@ class Hello extends React.Component {
 	}
 
 	handleClick(){
-		console.log("handleclick clicked");
+		
+		console.log("handleclick clicked...");
 
 		this.setState(
 			{
 				submit: true,
-				searching: true,
-				stocks: [
-					...this.state.stocks,
-					this.state.search
-				]
+				searching: true
 			}
 		);
 
-		this.props.fetchStock(this.state.search);
+		this.props.newStock(this.state.search, this.state.socket);
+
 	}
 
 	handleDB(){
@@ -52,8 +52,18 @@ class Hello extends React.Component {
 
 	handleDelete(stock){
 		console.log("handleDelete clicked");
+		this.props.deleteStock(stock, this.state.socket);
+	}
+
+	componentWillMount(){
 		let socket = new socketIOClient("http://127.0.0.1:3000");
-		this.props.deleteStock(stock, socket);
+		this.setState(
+			{
+				socket
+			}
+		);
+		this.props.updateDB(this.props.stocks);
+
 	}
 
 	componentDidMount() {
@@ -65,18 +75,26 @@ class Hello extends React.Component {
 		window.removeEventListener("resize", this.updateWindowDimensions);
 	}
 
-
 	componentWillReceiveProps(nextProps){
 		this.setState(
 			{
-				searching: false
+				searching: false,
+				stocks: nextProps.stocks.stocks.map(
+					stock => stock.stockName
+				),
+				done: nextProps.done
 			}
 		);
+
+		console.log("====================================");
+		console.log("stocks are here ", this.state.stocks);
+		console.log("====================================");
 	}
 
 	updateWindowDimensions() {
 		this.setState({ width: window.innerWidth, height: window.innerHeight });
 	}
+
 
 	handleChange(e){	
 		this.setState(
@@ -94,17 +112,21 @@ class Hello extends React.Component {
 					<Sidebar 
 						change = {this.handleChange}
 						value = {this.state.search}
-						handleClick={this.handleClick.bind(this)}
+						delete = {this.handleDelete}
+						handleClick={this.handleClick}
 						stocks = {this.state.stocks}
 					/>
+
+
 					<div className="col-9" style={{background: "rgb(215, 242, 243)"}}>
+
 						<div className="container">
 							{
-								this.state.searching ?
-									<HelloWorld />:
-									<ChartName />
+								this.props.done || this.state.searching ?
+									<ChartName />:
+									<HelloWorld />
 							}
-
+						
 							<Buttons handleClick={this.handleDB} />
 							<Buttons handleClick={this.handleDelete} />
 							<Buttons handleClick={this.printStocks} />
@@ -128,8 +150,9 @@ class Hello extends React.Component {
 
 const mapStateToProps = state => (
 	{
-		stocks: state
+		stocks: state.stocks,
+		done: state.done
 	}
 );
 
-export default connect(mapStateToProps, { fetchStock, updateDB, deleteStock })(Hello);
+export default connect(mapStateToProps, { fetchStock, updateDB, deleteStock, newStock })(Hello);

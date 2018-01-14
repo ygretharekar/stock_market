@@ -6,6 +6,8 @@ import socketIOClient from "socket.io-client";
 const UPDATE_DB = "UPDATE_DB";
 const ADD_STOCK = "ADD_STOCK";
 const REMOVE_STOCK = "REMOVE_STOCK";
+const GET_STOCK = "GET_STOCK";
+const DONE = "DONE";
 
 //action creators
 
@@ -30,23 +32,36 @@ export const removeStock = name => (
 	}
 );
 
-//async actions
+export const getStock = () => (
+	{
+		type: GET_STOCK
+	}
+);
+export const done = payload => (
+	{
+		type: DONE,
+		payload
+	}
+);
 
+//async actions
 export const updateDB = 
 	stock =>
 		dispatch => 
+
 			axios
 				.post("/api/stock")
 				.then(
 					res => {
 						// console.log(res);
 						// console.log("stocks ", stock.stocks[0]["Meta Data"]["2. Symbol"]);
+						dispatch(done(false));
 						if(res.data.length > stock.stocks.length){
 							res.data.forEach(
 								item => {
 									let flag = true;
 									stock.stocks.forEach(element => {
-										if(element.dataset_data == item.stockName)
+										if(element.stockName == item.stockName)
 											flag = false;
 									});
 									if(flag) {
@@ -59,16 +74,16 @@ export const updateDB =
 							);
 						}
 						else if(res.data.length < stock.stocks.length){
-
+								
 							let newStocks = [];
-
+								
 							console.log("====================================");
 							console.log(res.data);
 							console.log("====================================");
-
+								
 							stock.stocks.forEach(el => {
 								res.data.forEach(e => {
-									if(el["Meta Data"]["2. Symbol"] == e.stockName)
+									if(el.stockName == e.stockName)
 										newStocks = [ ...newStocks, el];
 									else {
 										console.log("====================================");
@@ -77,7 +92,7 @@ export const updateDB =
 									}
 								});
 							});
-
+								
 							dispatch(getDB(newStocks));
 						}
 						else {
@@ -86,12 +101,14 @@ export const updateDB =
 							console.log("====================================");
 						}
 					}
+						
 				)
 				.catch(
 					err => console.error(err)
 				);
-
+				
 //
+
 
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -109,9 +126,10 @@ export const checkSocket =
 //
 
 
+
 export const fetchStock =
 	stockName =>
-		dispatch =>
+		dispatch => 
 			axios
 				.post(
 					"/api/fetchstocks", 
@@ -121,13 +139,16 @@ export const fetchStock =
 				)
 				.then(
 					res => {
+						dispatch(done(false));
 						let data = { stockName, data: res.data };
 						console.log(data);
-						socket.emit("addStock", stockName);
 						dispatch(addStock(data));
+						return true;
 					}
 				)
-				.catch(err => console.error(err));	
+				.then(data => dispatch(done(data)))
+				.catch(err => console.error(err));
+
 				
 //
 
@@ -145,6 +166,5 @@ export const deleteStock =
 		dispatch => {
 			socket.emit("deleteStock", stockName);
 			dispatch(removeStock(stockName));
-		};
-		
+		};	
 //

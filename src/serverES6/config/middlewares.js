@@ -79,6 +79,7 @@ export default (app, io) => {
 							}
 						}
 					);
+					socket.broadcast.emit("removed", "stockItem");
 				}
 			);		
 		}

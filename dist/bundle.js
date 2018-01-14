@@ -40802,9 +40802,11 @@ class Hello extends _react2.default.Component {
 			width: 0,
 			height: 0,
 			search: "",
-			submit: false,
+			submit: true,
 			stocks: [],
-			searching: false
+			searching: false,
+			socket: null,
+			done: false
 		};
 
 		this.handleClick = this.handleClick.bind(this);
@@ -40815,15 +40817,15 @@ class Hello extends _react2.default.Component {
 	}
 
 	handleClick() {
-		console.log("handleclick clicked");
+
+		console.log("handleclick clicked...");
 
 		this.setState({
 			submit: true,
-			searching: true,
-			stocks: [...this.state.stocks, this.state.search]
+			searching: true
 		});
 
-		this.props.fetchStock(this.state.search);
+		this.props.newStock(this.state.search, this.state.socket);
 	}
 
 	handleDB() {
@@ -40831,10 +40833,17 @@ class Hello extends _react2.default.Component {
 		this.props.updateDB(this.props.stocks);
 	}
 
-	handleDelete() {
+	handleDelete(stock) {
 		console.log("handleDelete clicked");
+		this.props.deleteStock(stock, this.state.socket);
+	}
+
+	componentWillMount() {
 		let socket = new _socket2.default("http://127.0.0.1:3000");
-		this.props.deleteStock("MSFT", socket);
+		this.setState({
+			socket
+		});
+		this.props.updateDB(this.props.stocks);
 	}
 
 	componentDidMount() {
@@ -40848,8 +40857,14 @@ class Hello extends _react2.default.Component {
 
 	componentWillReceiveProps(nextProps) {
 		this.setState({
-			searching: false
+			searching: false,
+			stocks: nextProps.stocks.stocks.map(stock => stock.stockName),
+			done: nextProps.done
 		});
+
+		console.log("====================================");
+		console.log("stocks are here ", this.state.stocks);
+		console.log("====================================");
 	}
 
 	updateWindowDimensions() {
@@ -40873,7 +40888,8 @@ class Hello extends _react2.default.Component {
 				_react2.default.createElement(_row2.default, {
 					change: this.handleChange,
 					value: this.state.search,
-					handleClick: this.handleClick.bind(this),
+					"delete": this.handleDelete,
+					handleClick: this.handleClick,
 					stocks: this.state.stocks
 				}),
 				_react2.default.createElement(
@@ -40882,7 +40898,7 @@ class Hello extends _react2.default.Component {
 					_react2.default.createElement(
 						"div",
 						{ className: "container" },
-						this.state.searching ? _react2.default.createElement(_helloWorld2.default, null) : _react2.default.createElement(_chartName2.default, null),
+						this.props.done || this.state.searching ? _react2.default.createElement(_chartName2.default, null) : _react2.default.createElement(_helloWorld2.default, null),
 						_react2.default.createElement(_button2.default, { handleClick: this.handleDB }),
 						_react2.default.createElement(_button2.default, { handleClick: this.handleDelete }),
 						_react2.default.createElement(_button2.default, { handleClick: this.printStocks }),
@@ -40899,10 +40915,11 @@ class Hello extends _react2.default.Component {
 }
 
 const mapStateToProps = state => ({
-	stocks: state
+	stocks: state.stocks,
+	done: state.done
 });
 
-const _default = (0, _reactRedux.connect)(mapStateToProps, { fetchStock: _stock_actions.fetchStock, updateDB: _stock_actions.updateDB, deleteStock: _stock_actions.deleteStock })(Hello);
+const _default = (0, _reactRedux.connect)(mapStateToProps, { fetchStock: _stock_actions.fetchStock, updateDB: _stock_actions.updateDB, deleteStock: _stock_actions.deleteStock, newStock: _stock_actions.newStock })(Hello);
 
 exports.default = _default;
 ;
@@ -44389,7 +44406,7 @@ Backoff.prototype.setJitter = function(jitter){
 Object.defineProperty(exports, "__esModule", {
 	value: true
 });
-exports.deleteStock = exports.newStock = exports.fetchStock = exports.checkSocket = exports.updateDB = exports.removeStock = exports.addStock = exports.getDB = undefined;
+exports.deleteStock = exports.newStock = exports.fetchStock = exports.checkSocket = exports.updateDB = exports.done = exports.getStock = exports.removeStock = exports.addStock = exports.getDB = undefined;
 
 var _axios = __webpack_require__(304);
 
@@ -44406,6 +44423,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 const UPDATE_DB = "UPDATE_DB";
 const ADD_STOCK = "ADD_STOCK";
 const REMOVE_STOCK = "REMOVE_STOCK";
+const GET_STOCK = "GET_STOCK";
+const DONE = "DONE";
 
 //action creators
 
@@ -44424,16 +44443,24 @@ const removeStock = exports.removeStock = name => ({
 	name
 });
 
-//async actions
+const getStock = exports.getStock = () => ({
+	type: GET_STOCK
+});
+const done = exports.done = payload => ({
+	type: DONE,
+	payload
+});
 
+//async actions
 const updateDB = exports.updateDB = stock => dispatch => _axios2.default.post("/api/stock").then(res => {
 	// console.log(res);
 	// console.log("stocks ", stock.stocks[0]["Meta Data"]["2. Symbol"]);
+	dispatch(done(false));
 	if (res.data.length > stock.stocks.length) {
 		res.data.forEach(item => {
 			let flag = true;
 			stock.stocks.forEach(element => {
-				if (element.dataset_data == item.stockName) flag = false;
+				if (element.stockName == item.stockName) flag = false;
 			});
 			if (flag) {
 				console.log("====================================");
@@ -44452,7 +44479,7 @@ const updateDB = exports.updateDB = stock => dispatch => _axios2.default.post("/
 
 		stock.stocks.forEach(el => {
 			res.data.forEach(e => {
-				if (el["Meta Data"]["2. Symbol"] == e.stockName) newStocks = [...newStocks, el];else {
+				if (el.stockName == e.stockName) newStocks = [...newStocks, el];else {
 					console.log("====================================");
 					console.log("Less stocks in state");
 					console.log("====================================");
@@ -44470,6 +44497,7 @@ const updateDB = exports.updateDB = stock => dispatch => _axios2.default.post("/
 
 //
 
+
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 
 const checkSocket = exports.checkSocket = () => dispatch => {
@@ -44485,10 +44513,12 @@ const checkSocket = exports.checkSocket = () => dispatch => {
 const fetchStock = exports.fetchStock = stockName => dispatch => _axios2.default.post("/api/fetchstocks", {
 	data: stockName
 }).then(res => {
+	dispatch(done(false));
 	let data = { stockName, data: res.data };
 	console.log(data);
 	dispatch(addStock(data));
-}).catch(err => console.error(err));
+	return true;
+}).then(data => dispatch(done(data))).catch(err => console.error(err));
 
 //
 
@@ -44503,7 +44533,6 @@ const deleteStock = exports.deleteStock = (stockName, socket) => dispatch => {
 	socket.emit("deleteStock", stockName);
 	dispatch(removeStock(stockName));
 };
-
 //
 
 ;
@@ -44519,11 +44548,19 @@ var _temp = function () {
 
 	__REACT_HOT_LOADER__.register(REMOVE_STOCK, "REMOVE_STOCK", "C:/My Work/Stock Market/src/client/reducers/actions/stock_actions.js");
 
+	__REACT_HOT_LOADER__.register(GET_STOCK, "GET_STOCK", "C:/My Work/Stock Market/src/client/reducers/actions/stock_actions.js");
+
+	__REACT_HOT_LOADER__.register(DONE, "DONE", "C:/My Work/Stock Market/src/client/reducers/actions/stock_actions.js");
+
 	__REACT_HOT_LOADER__.register(getDB, "getDB", "C:/My Work/Stock Market/src/client/reducers/actions/stock_actions.js");
 
 	__REACT_HOT_LOADER__.register(addStock, "addStock", "C:/My Work/Stock Market/src/client/reducers/actions/stock_actions.js");
 
 	__REACT_HOT_LOADER__.register(removeStock, "removeStock", "C:/My Work/Stock Market/src/client/reducers/actions/stock_actions.js");
+
+	__REACT_HOT_LOADER__.register(getStock, "getStock", "C:/My Work/Stock Market/src/client/reducers/actions/stock_actions.js");
+
+	__REACT_HOT_LOADER__.register(done, "done", "C:/My Work/Stock Market/src/client/reducers/actions/stock_actions.js");
 
 	__REACT_HOT_LOADER__.register(updateDB, "updateDB", "C:/My Work/Stock Market/src/client/reducers/actions/stock_actions.js");
 
@@ -64708,7 +64745,7 @@ const _default = props => {
 						{
 							className: "btn btn-block btn-secondary",
 							style: { marginTop: "5px" },
-							onClick: props.delete
+							onClick: () => props.delete(s)
 						},
 						s
 					)
@@ -64871,16 +64908,35 @@ var _temp = function () {
 Object.defineProperty(exports, "__esModule", {
 	value: true
 });
-const stocksReducer = (state = [], action) => {
+const stocksReducer = (state = { stocks: [], done: false }, action) => {
 	switch (action.type) {
+
 		case "UPDATE_DB":
-			return action.data;
+			return {
+				stocks: [...state.stocks, action.data],
+				done: state.done
+			};
 
 		case "ADD_STOCK":
-			return [...state, action.stockData];
+			return {
+				stocks: [...state.stocks, action.stockData],
+				done: state.done
+			};
 
 		case "REMOVE_STOCK":
-			return state.filter(stock => stock.stockName !== action.name);
+			return {
+				stocks: state.stocks.filter(stock => stock.stockName !== action.name),
+				done: state.done
+			};
+
+		case "GET_STOCK":
+			return state;
+
+		case "DONE":
+			return {
+				stocks: state.stocks,
+				done: action.payload
+			};
 
 		default:
 			return state;
