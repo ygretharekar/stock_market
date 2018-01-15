@@ -1,5 +1,4 @@
 import axios from "axios";
-import socketIOClient from "socket.io-client";
 
 //actions
 
@@ -37,6 +36,7 @@ export const getStock = () => (
 		type: GET_STOCK
 	}
 );
+
 export const done = payload => (
 	{
 		type: DONE,
@@ -53,8 +53,6 @@ export const updateDB =
 				.post("/api/stock")
 				.then(
 					res => {
-						// console.log(res);
-						// console.log("stocks ", stock.stocks[0]["Meta Data"]["2. Symbol"]);
 						dispatch(done(false));
 						if(res.data.length > stock.stocks.length){
 							res.data.forEach(
@@ -87,45 +85,27 @@ export const updateDB =
 										newStocks = [ ...newStocks, el];
 									else {
 										console.log("====================================");
-										console.log("Less stocks in state");
+										console.log("Less stocks in database");
 										console.log("====================================");
 									}
 								});
 							});
-								
 							dispatch(getDB(newStocks));
 						}
 						else {
 							console.log("====================================");
 							console.log( "stocks are equal" );
 							console.log("====================================");
+							dispatch(done(true));
 						}
 					}
-						
 				)
 				.catch(
 					err => console.error(err)
 				);
-				
+
+		
 //
-
-
-const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
-
-export const checkSocket =
-	() =>
-		dispatch => {
-			const socket = socketIOClient("http://127.0.0.1:3000");
-			socket.emit("disconnect");
-			return delay(2000).then(
-				() => {
-					dispatch(getDB([]));
-				}
-			);
-		};
-//
-
-
 
 export const fetchStock =
 	stockName =>
@@ -143,13 +123,12 @@ export const fetchStock =
 						let data = { stockName, data: res.data };
 						console.log(data);
 						dispatch(addStock(data));
-						return true;
+						return true;	
 					}
 				)
 				.then(data => dispatch(done(data)))
 				.catch(err => console.error(err));
 
-				
 //
 
 export const newStock = 
@@ -166,5 +145,6 @@ export const deleteStock =
 		dispatch => {
 			socket.emit("deleteStock", stockName);
 			dispatch(removeStock(stockName));
-		};	
+		};
+
 //

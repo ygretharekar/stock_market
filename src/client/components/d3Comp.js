@@ -119,7 +119,7 @@ export default props => {
 				xExtents={[new Date(1986, 3, 13), new Date(2018, 1, 3)]}
 			>
 				<Label x={300} y={30}
-					fontSize= {30} text="Chart stock market" />
+					fontSize= {30} text="Stock close value" />
 
 				<Chart
 					id={0}

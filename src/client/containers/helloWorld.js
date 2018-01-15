@@ -1,7 +1,7 @@
 import React from "react";
 import {connect} from "react-redux";
 import socketIOClient from "socket.io-client";
-import { fetchStock, updateDB, deleteStock, newStock } from "../reducers/actions/stock_actions";
+import { fetchStock, updateDB, deleteStock, newStock, removeStock } from "../reducers/actions/stock_actions";
 
 import Buttons from "../components/button";
 import D3 from "../components/d3Comp";
@@ -19,8 +19,7 @@ class Hello extends React.Component {
 			submit: true,
 			stocks: [],
 			searching: false,
-			socket: null,
-			done: false
+			socket: null
 		};
 
 		this.handleClick = this.handleClick.bind(this);
@@ -57,13 +56,10 @@ class Hello extends React.Component {
 
 	componentWillMount(){
 		let socket = new socketIOClient("http://127.0.0.1:3000");
-		this.setState(
-			{
-				socket
-			}
-		);
+		this.setState({socket});
 		this.props.updateDB(this.props.stocks);
-
+		socket.on("added stock", data => this.props.fetchStock(data));
+		socket.on("removed stock", data => this.props.removeStock(data));
 	}
 
 	componentDidMount() {
@@ -81,20 +77,14 @@ class Hello extends React.Component {
 				searching: false,
 				stocks: nextProps.stocks.stocks.map(
 					stock => stock.stockName
-				),
-				done: nextProps.done
+				)
 			}
 		);
-
-		console.log("====================================");
-		console.log("stocks are here ", this.state.stocks);
-		console.log("====================================");
 	}
 
 	updateWindowDimensions() {
 		this.setState({ width: window.innerWidth, height: window.innerHeight });
 	}
-
 
 	handleChange(e){	
 		this.setState(
@@ -109,7 +99,7 @@ class Hello extends React.Component {
 		return( 
 			<div className="container">
 				<div className="row">
-					<Sidebar 
+					<Sidebar
 						change = {this.handleChange}
 						value = {this.state.search}
 						delete = {this.handleDelete}
@@ -117,16 +107,14 @@ class Hello extends React.Component {
 						stocks = {this.state.stocks}
 					/>
 
-
 					<div className="col-9" style={{background: "rgb(215, 242, 243)"}}>
 
 						<div className="container">
 							{
-								this.props.done || this.state.searching ?
+								this.props.done && !this.state.searching ?
 									<ChartName />:
 									<HelloWorld />
-							}
-						
+							}	
 							<Buttons handleClick={this.handleDB} />
 							<Buttons handleClick={this.handleDelete} />
 							<Buttons handleClick={this.printStocks} />
@@ -151,8 +139,9 @@ class Hello extends React.Component {
 const mapStateToProps = state => (
 	{
 		stocks: state.stocks,
-		done: state.done
+		done: state.stocks.done
 	}
 );
 
-export default connect(mapStateToProps, { fetchStock, updateDB, deleteStock, newStock })(Hello);
+export default 
+connect(mapStateToProps, { fetchStock, updateDB, deleteStock, newStock, removeStock })(Hello);

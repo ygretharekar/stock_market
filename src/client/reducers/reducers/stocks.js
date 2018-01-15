@@ -41,6 +41,4 @@ const stocksReducer = (state = {stocks: [], done: false}, action) => {
 	}
 };
 
-
-
 export default stocksReducer;

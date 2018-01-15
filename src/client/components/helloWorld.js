@@ -54,7 +54,7 @@ class Header extends React.Component {
 	render(){
 		return(
 			<h1>
-				searching
+				Loading
 				{this.state.string}
 			</h1>
 		);

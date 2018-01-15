@@ -33,16 +33,16 @@ export default (app, io) => {
 		)
 	);
 
-
 	io.on(
 		"connection",
 		socket => {
 			console.log("new client connected with id: ", socket.id);
-			
+
 			socket.on(
 				"disconnect",
 				() => console.log("Client disconnected..")
 			);
+
 
 			socket.on(
 				"addStock",
@@ -55,11 +55,12 @@ export default (app, io) => {
 						(err, res) => {
 							if(err) console.error(err);
 							console.log(`Added new stock ${data.toUpperCase()}`);
-							
 						}
 					);
+					socket.broadcast.emit("added stock",  stock);
 				}
 			);
+
 
 			socket.on(
 				"deleteStock",
@@ -70,7 +71,7 @@ export default (app, io) => {
 						},
 						(err, res) => {
 							if(err) console.error(err);
-
+							
 							else {
 								console.log("====================================");
 								console.log(`Removed stock ${data}`);
@@ -79,7 +80,8 @@ export default (app, io) => {
 							}
 						}
 					);
-					socket.broadcast.emit("removed", "stockItem");
+					
+					socket.broadcast.emit("removed stock",  data);
 				}
 			);		
 		}
