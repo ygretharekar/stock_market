@@ -44445,6 +44445,7 @@ const done = exports.done = payload => ({
 //async actions
 const updateDB = exports.updateDB = stock => dispatch => _axios2.default.post("/api/stock").then(res => {
 	dispatch(done(false));
+
 	if (res.data.length > stock.stocks.length) {
 		res.data.forEach(item => {
 			let flag = true;
@@ -44470,12 +44471,11 @@ const updateDB = exports.updateDB = stock => dispatch => _axios2.default.post("/
 			res.data.forEach(e => {
 				if (el.stockName == e.stockName) newStocks = [...newStocks, el];else {
 					console.log("====================================");
-					console.log("Less stocks in state");
+					console.log("Less stocks in database");
 					console.log("====================================");
 				}
 			});
 		});
-
 		dispatch(getDB(newStocks));
 	} else {
 		console.log("====================================");
@@ -64812,7 +64812,7 @@ var _temp = function () {
 "use strict";
 /* WEBPACK VAR INJECTION */(function(process) {
 
-const NODE_ENV = "dev";
+const NODE_ENV = "prod";
 if (NODE_ENV === "prod") module.exports = __webpack_require__(557);else module.exports = __webpack_require__(559);
 ;
 

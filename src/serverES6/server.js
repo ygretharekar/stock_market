@@ -12,15 +12,6 @@ const io = new socketIO(server);
 
 appConfig(app, io);
 
-/* app.listen(
-	3000,
-	err => {
-		if(err) throw err;
-		else{
-			console.log("Server is listening port 3000");
-		}
-	}
-); */
 
 server.listen(
 	3000,

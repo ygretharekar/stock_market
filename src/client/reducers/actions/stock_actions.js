@@ -54,6 +54,7 @@ export const updateDB =
 				.then(
 					res => {
 						dispatch(done(false));
+						
 						if(res.data.length > stock.stocks.length){
 							res.data.forEach(
 								item => {
@@ -104,7 +105,6 @@ export const updateDB =
 					err => console.error(err)
 				);
 
-		
 //
 
 export const fetchStock =
